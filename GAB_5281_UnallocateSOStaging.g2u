@@ -1,0 +1,126 @@
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+
+	F.Intrinsic.Control.SelectCase(V.Caller.Hook)
+		F.Intrinsic.Control.Case(38401)
+			V.Passed.000093.Set("Unallocate")
+			
+		F.Intrinsic.Control.Case(38402)
+			F.Intrinsic.Control.CallSub(LoadDTFromBDF)
+			F.Intrinsic.Control.CallSub(Unallocate)
+			
+	F.Intrinsic.Control.EndSelect
+
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.TestBDF.Start
+F.Intrinsic.BDF.Load("TEST","AUX001")
+F.Intrinsic.BDF.Clone("TEST","CLONE")
+'Function.Intrinsic.UI.Msgbox(V.DataTable.AUX001(0).Part_Number!FieldVal)
+'Function.Intrinsic.UI.Msgbox(V.DataTable.CLONE(0).Part_Number!FieldVal)
+Function.Intrinsic.UI.Msgbox(V.DataTable.DT.Exists,"DT")
+Function.Intrinsic.UI.Msgbox(V.DataTable.AUX001.Exists,"AUX001")
+Function.Intrinsic.UI.Msgbox(V.DataTable.CLONE.Exists,"CLONE")
+Function.Intrinsic.UI.Msgbox(V.DataTable.BDF.Exists,"BDF")
+Function.Intrinsic.UI.Msgbox(V.DataTable.BDFs.Exists,"BDFs")
+Function.Intrinsic.UI.Msgbox(V.DataTable.TEST.Exists,"TEST")
+
+'Function.Intrinsic.Debug.InvokeDebugger
+'Function.Intrinsic.Debug.Stop
+Program.Sub.TestBDF.End
+
+Program.Sub.LoadDTFromBDF.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+
+	V.Local.iRows.Declare
+	V.Local.sRow.Declare
+	V.Local.iCnt.Declare
+	V.Local.sSQL.declare
+	V.Local.sReturn.Declare
+	V.Local.sString.Declare
+	
+	'Load/cloan the BDF
+	F.Intrinsic.BDF.Load("AUX001","AUX001")
+	
+	'get the number of rows in the grid/BDF
+	F.Intrinsic.BDF.ReadRowCount("AUX001",V.Local.iRows)
+	
+	'subtract 1 from rows for the For loop
+	F.Intrinsic.Math.Sub(V.Local.iRows,1,V.Local.iRows)
+	F.Intrinsic.Control.For(V.Local.iCnt,0,V.Local.iRows,1)
+		F.Intrinsic.BDF.ReadRow("AUX001",V.Local.iCnt,V.Local.sRow)
+		F.Intrinsic.Control.If(V.Local.iCnt,=,0)
+			F.Intrinsic.String.Build("{0}",V.Local.sRow,V.Local.sString)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.String.Build("{0}{1}{2}",V.Local.sString,V.Ambient.NewLine,V.Local.sRow,V.Local.sString)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(V.Local.iCnt)
+	
+	F.Intrinsic.Control.If(V.Caller.GSSVersion,<,2017.1)
+		F.Data.DataTable.CreateFromString("dtStagedData",V.Local.sString,"Select*!*Order*!*Line*!*Text*!*Part_Number*!*Loc*!*Promise_Date*!*Order_Qty*!*Staged_Qty*!*Schedule*!*Allocated*!*Allocate*!*Unpacked_Qty*!*BO_Qty*!*Available_Qty*!*UM*!*Part_Weight*!*# Cartons*!*Per_Carton*!*Carton_Weight*!*Carton_Code*!*No_Pallets*!*Per_Pallet*!*Pallet_Weight*!*Pallet_Code","String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String","|~|",V.Ambient.NewLine,True)
+	F.Intrinsic.Control.Else
+		'2017.1
+		F.Data.DataTable.CreateFromString("dtStagedData",V.Local.sString,"Select*!*Order*!*Line*!*Text*!*Part_Number*!*Loc*!*Promise_Date*!*Order_Qty*!*Staged_Qty*!*Schedule*!*Allocated*!*Allocate*!*Unpacked_Qty*!*BO_Qty*!*Available_Qty*!*UM*!*Part_Weight*!*# Cartons*!*Per_Carton*!*Carton_Weight*!*Carton_Code*!*No_Pallets*!*Per_Pallet*!*Pallet_Weight*!*Pallet_Code*!*In_Staging","String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String*!*String","|~|",V.Ambient.NewLine,True)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.LoadDTFromBDF.End
+
+Program.Sub.Unallocate.Start
+	F.Intrinsic.Control.Try
+	V.Local.sError.Declare
+	
+	V.Local.sAllocType.Declare
+	V.Local.iCnt.Declare
+	V.Local.sSQL.Declare
+	
+	'Open Wait Dialog
+	F.Intrinsic.UI.InvokeWaitDialog("Unallocating Parts....")
+	
+	'Open DB Connection
+	F.ODBC.Connection!con.OpenCompanyConnection
+	
+	'Get Allocation Type from OP_HEADER
+	F.ODBC.Connection!con.ExecuteAndReturn("Select Case F_LONG When 1 Then 'LOT' When 2 Then 'HEAT' When 3 Then 'SERIAL_NUMBER' Else 'NONE' End As ALLOC_TYPE From Op_Header Where ID = 401187 And SEQUENCE = 0000;",V.Local.sAllocType)
+	F.Intrinsic.Control.If(V.Local.sAllocType,=,"NONE")
+		F.Intrinsic.UI.Msgbox("There is no allocation type set.","Check Inventory Options")
+		F.ODBC.Connection!con.Close
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.For(V.Local.iCnt,0,V.DataTable.dtStagedData.RowCount--,1)
+		'Refresh Wait Dialog
+		F.Intrinsic.UI.ChangeWaitStatus("Unallocating Parts....",V.Local.iCnt,0,V.DataTable.dtStagedData.RowCount--)
+		'Unallocate Parts
+		F.Intrinsic.String.Build("Update ITEM_MASTER Set ALLOCATED = '', ALLOC_TYPE = '' Where ALLOCATED = 'Y' And ALLOC_TYPE = 'S' And PART = '{0}' And LOCATION = '{1}' And {2} = '{3}-{4}';",V.DataTable.dtStagedData(V.Local.iCnt).Part_Number!FieldVal,V.DataTable.dtStagedData(V.Local.iCnt).Loc!FieldVal,V.Local.sAllocType,V.DataTable.dtStagedData(V.Local.iCnt).Order!FieldVal,V.DataTable.dtStagedData(V.Local.iCnt).Line!FieldVal,V.Local.sSQL)
+	F.Intrinsic.Control.Next(V.Local.iCnt)
+	
+	'Close DB Connection
+	F.ODBC.Connection!con.Close
+	
+	'Close Wait Dialog
+	F.Intrinsic.UI.CloseWaitDialog
+	
+'	'Complete
+'	F.Intrinsic.UI.Msgbox("Complete","Unallocating Parts")
+
+	F.Intrinsic.Control.Catch
+		F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.End 
+	F.Intrinsic.Control.EndTry
+Program.Sub.Unallocate.End
